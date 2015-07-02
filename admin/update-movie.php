@@ -7,162 +7,135 @@ include_once 'header.php';
 /*
 $desc = $db->query('DESC movies')->fetchAll();
 foreach($desc as $key => $field) {
-	echo $field['Field'].'<br>';
+	echo $field['Field'].'|'.$field['Null'].'|'.$field['Type'].'<br>';
 }
 */
 
 $fields = array(
-	'slug',
-	'title',
-	'year',
-	'genres',
-	'synopsis',
-	'directors',
-	'actors',
-	'writers',
-	'runtime',
-	'mpaa',
-	'rating',
-	'popularity',
-	'modified',
-	'created',
-	'poster_flag',
-	'cover',
+	'slug' => 		 array('required' => false, 'type' => 'text',  		'maxlength' => 255),
+	'title' => 		 array('required' => true, 'type' => 'textarea',  	'maxlength' => 0, 'error' => 'Title is mandatory and must be 255 length max'),
+	'year' => 		 array('required' => true, 'type' => 'text',  		'maxlength' => 11),
+	'genres' => 	 array('required' => true, 'type' => 'text',  		'maxlength' => 255),
+	'synopsis' => 	 array('required' => true, 'type' => 'textarea',  	'maxlength' => 0),
+	'directors' => 	 array('required' => false, 'type' => 'text',  		'maxlength' => 255),
+	'actors' => 	 array('required' => false, 'type' => 'text',  		'maxlength' => 255),
+	'writers' => 	 array('required' => false, 'type' => 'text',  		'maxlength' => 255),
+	'runtime' => 	 array('required' => false, 'type' => 'text',  		'maxlength' => 11, 'label' => 'duration'),
+	'mpaa' => 		 array('required' => false, 'type' => 'text',  		'maxlength' => 25),
+	'rating' => 	 array('required' => false,  'type' => 'text',  		'maxlength' => 3),
+	'popularity' =>  array('required' => false, 'type' => 'text',  		'maxlength' => 11),
+	'poster_flag' => array('required' => false,  'type' => 'checkbox',  	'maxlength' => 1)
 );
-?>
 
-<form class="form-horizontal" action="" method="POST" novalidate>
-
-<?php
-
-$slug = !empty($_POST['slug']) ? $_POST['slug'] : '';  
-$title = !empty($_POST['title']) ? $_POST['title'] : '';  
-$year = !empty($_POST['year']) ? $_POST['year'] : '';  
-$genres = !empty($_POST['genres']) ? $_POST['genres'] : '';  
-$synopsis = !empty($_POST['synopsis']) ? $_POST['synopsis'] : ''; 
-$directors = !empty($_POST['directors']) ? $_POST['directors'] : ''; 
-$actors = !empty($_POST['actors']) ? $_POST['actors'] : ''; 
-$writers = !empty($_POST['writers']) ? $_POST['writers'] : ''; 
-$runtime = !empty($_POST['runtime']) ? $_POST['runtime'] : ''; 
-$mpaa = !empty($_POST['mpaa']) ? $_POST['mpaa'] : ''; 
-$rating = !empty($_POST['rating']) ? $_POST['rating'] : ''; 
-$popularity = !empty($_POST['popularity']) ? $_POST['popularity'] : ''; 
-$modified = !empty($_POST['modified']) ? $_POST['modified'] : ''; 
-$created = !empty($_POST['created']) ? $_POST['created'] : ''; 
-$poster_flag = !empty($_POST['poster_flag']) ? $_POST['poster_flag'] : ''; 
-$cover = !empty($_POST['cover']) ? $_POST['cover'] : ''; 
-
+foreach($fields as $field_name => $field_params) {
+	$$field_name = !empty($_POST[$field_name]) ? $_POST[$field_name] : '';
+}
 
 $errors = array();
 
 if (!empty($_POST)) {
 
-if (empty($slug)) {
-	$errors['slug'] = 'Vous devez renseigner le slug';
-}
-if (empty($title)) {
-	$errors['title'] = 'Vous devez renseigner le title';
-}
-if (empty($year)) {
-	$errors['year'] = 'Vous devez renseigner le year';
-}
-if (empty($genres)) {
-	$errors['genres'] = 'Vous devez renseigner le genres';
-}
-if (empty($synopsis)) {
-	$errors['synopsis'] = 'Vous devez renseigner le synopsis';
-}
-if (empty($directors)) {
-	$errors['directors'] = 'Vous devez renseigner le directors';
-}
-if (empty($actors)) {
-	$errors['actors'] = 'Vous devez renseigner le actors';
-}
-if (empty($writers)) {
-	$errors['writers'] = 'Vous devez renseigner le writers';
-}
-if (empty($runtime)) {
-	$errors['runtime'] = 'Vous devez renseigner le runtime';
-}
-if (empty($mpaa)) {
-	$errors['mpaa'] = 'Vous devez renseigner le mpaa';
-}
-if (empty($rating)) {
-	$errors['rating'] = 'Vous devez renseigner le rating';
-}
-if (empty($popularity)) {
-	$errors['popularity'] = 'Vous devez renseigner le popularity';
-}
-if (empty($modified)) {
-	$errors['modified'] = 'Vous devez renseigner le modified';
-}
-if (empty($created)) {
-	$errors['created'] = 'Vous devez renseigner le created';
-}
-if (empty($poster_flag)) {
-	$errors['poster_flag'] = 'Vous devez renseigner le poster_flag';
-}
-if (empty($cover)) {
-	$errors['cover'] = 'Vous devez renseigner le cover';
-}
+	foreach($fields as $field_name => $field_params) {
 
-if (empty($errors)) {
+		if ($field_params['required'] !== false && empty($_POST[$field_name])) {
 
+			$error_label = !empty($field_params['error']) ? $field_params['error'] : $field_name.' is mandatory';
 
+			$errors[$field_name] = $error_label;
+		}
+	}
 
-	$query = $db->prepare('INSERT INTO movies (slug, title, year, genres, synopsis, directors, actors, writers, runtime, mpaa, rating, popularity, modified, created, poster_flag, cover) VALUES (:slug, :title, :year, :genres, :synopsis, :directors, :actors, :writers, :runtime, :mpaa, :rating, :popularity, :modified, :created, :poster_flag, :cover)');
+	if (empty($errors)) {
 
+		$query = $db->prepare('INSERT INTO movies SET slug = :slug, title = :title, year = :year, genres = :genres, synopsis = :synopsis, directors = :directors, actors = :actors, writers = :writers, runtime = :runtime, mpaa = :mpaa, rating = :rating, popularity = :popularity, poster_flag = :poster_flag, modified = NOW(), created = NOW()');
 		$query->bindValue('slug', $slug);
-		$query->bindValue('title', $title); 
+		$query->bindValue('title', $title);
 		$query->bindValue('year', $year);
-		$query->bindValue('genres', $genres); 
-		$query->bindValue('synopsis', $synopsis); 
-		$query->bindValue('directors', $directors); 
-		$query->bindValue('actors', $actors); 
-		$query->bindValue('writers', $writers); 
-		$query->bindValue('runtime', $runtime); 
+		$query->bindValue('genres', $genres);
+		$query->bindValue('synopsis', $synopsis);
+		$query->bindValue('directors', $directors);
+		$query->bindValue('actors', $actors);
+		$query->bindValue('writers', $writers);
+		$query->bindValue('runtime', $runtime);
 		$query->bindValue('mpaa', $mpaa);
-		$query->bindValue('rating', $rating); 
-		$query->bindValue('popularity', $popularity); 
-		$query->bindValue('modified', $modified);
-		$query->bindValue('created', $created); 
-		$query->bindValue('poster_flag', $poster_flag); 
-		$query->bindValue('cover', $cover); 
-
+		$query->bindValue('rating', $rating);
+		$query->bindValue('popularity', $popularity);
+		$query->bindValue('poster_flag', $poster_flag);
 		$query->execute();
-
 
 		$result = $db->lastInsertId();
 
 		if (empty($result)) {
 			echo '<div class="alert alert-danger" role="danger">Une erreur est survenue</div>';
 		} else {
-			echo '<div class="alert alert-success" role="success">Merci :)</div>';
+			echo '<div class="alert alert-success" role="success">Le film a bien été ajouté</div>';
+			echo redirectJs('movies.php');
 		}
-		exit;
+		goto end;
 	}
-
 }
 
-foreach($fields as $field) {
-
+if (!empty($errors)) {
+	echo '<div class="alert alert-danger" role="danger">';
+	foreach($errors as $error) {
+		echo $error.'<br>';
+	}
+	echo '</div>';
+}
 ?>
 
-<div class="form-group">
-	<label for="<?= $field ?>" class="col-sm-2 control-label"><?= $field ?></label>
-	<div class="col-sm-3">
-		<input type="text" id="<?= $field ?>" name="<?= $field ?>" class="form-control" placeholder="<?= $field ?>" value="<?= $$field ?>">
-	</div>
-</div>
+<form class="form-horizontal" action="" method="POST" novalidate>
 
-<?php } ?>
-<div class="form-group">
-		<div class="col-sm-2 control-label">
-			<button type="submit" class="btn btn-default">Envoyer le film en base</button>
+<?php
+foreach($fields as $field_name => $field_params) {
+
+	$required = $field_params['required'];
+	$type = $field_params['type'];
+	$maxlength = $field_params['maxlength'];
+	$label = ucfirst(!empty($field_params['label']) ? $field_params['label'] : $field_name);
+
+	echo PHP_EOL;
+
+	if ($type == 'textarea') {
+	?>
+	<div class="form-group">
+		<label for="<?= $field_name ?>" class="col-sm-2 control-label"><?= $label ?></label>
+		<div class="col-sm-6">
+			<textarea id="<?= $field_name ?>" name="<?= $field_name ?>" class="form-control" placeholder="<?= $label ?>" rows="5" style="resize: none;"><?= $$field_name ?></textarea>
 		</div>
-</div>
+	</div>
+	<?php } else if ($type == 'checkbox') { ?>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<div class="checkbox">
+				<label for="<?= $label ?>">
+					<input id="<?= $field_name ?>" type="checkbox" name="<?= $field_name ?>" value="1" <?= $$field_name ? 'checked' : '' ?>> <?= $label ?>
+				</label>
+			</div>
+		</div>
+	</div>
+	<?php } else { ?>
+	<div class="form-group">
+		<label for="<?= $field_name ?>" class="col-sm-2 control-label"><?= $label ?></label>
+		<div class="col-sm-6">
+			<input type="text" id="<?= $field_name ?>" name="<?= $field_name ?>" class="form-control" placeholder="<?= $label ?>" value="<?= $$field_name ?>">
+		</div>
+	</div>
+	<?php
+	}
+}
+?>
 
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<button type="submit" class="btn btn-default">Envoyer</button>
+		</div>
+	</div>
+>>>>>>> 86a2ca92af15d89a8c0d5d067a496a1ad8baae6a
 
 </form>
 
-<?php include_once 'footer.php'; ?>
+<?php
+end:
+
+include_once 'footer.php';
